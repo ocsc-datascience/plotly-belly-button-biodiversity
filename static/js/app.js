@@ -1,7 +1,32 @@
 function buildMetadata(sample) {
 
-  // @TODO: Complete the following function that builds the metadata panel
 
+    var url = `/metadata/${sample}`
+    d3.json(url).then(function(xdata) {
+
+        // grab the panel by its id
+        var md = d3.select("#sample-metadata");
+
+        // wipe any paragraphs
+        md.selectAll("p").remove()
+        
+        // loop over our object, append paragraphs
+        for (var key in xdata) {
+            // handle missing data
+            var outdata = "";
+            if (!xdata[key]) {
+                outdata = "No data";
+            } else {
+                outdata = xdata[key];
+            }
+            
+            md.append("p").text(`${key}: ${outdata}`);
+        }
+        
+        console.log(xdata);
+        
+    });
+        
   // Use `d3.json` to fetch the metadata for a sample
     // Use d3 to select the panel with id of `#sample-metadata`
 
@@ -17,13 +42,45 @@ function buildMetadata(sample) {
 
 function buildCharts(sample) {
 
-  // @TODO: Use `d3.json` to fetch the sample data for the plots
+    var url = `/samples/${sample}`
+    d3.json(url).then(function(xdata) {
 
-    // @TODO: Build a Bubble Chart using the sample data
 
-    // @TODO: Build a Pie Chart
-    // HINT: You will need to use slice() to grab the top 10 sample_values,
-    // otu_ids, and labels (10 each).
+        // make Pie chart
+        
+        // set up the trace
+        var data1 = [ { "labels": xdata.otu_ids.slice(0,10),
+                       "values": xdata.sample_values.slice(0,10),
+                       "hoverinfo": "value+text",
+                       "hovertext": xdata.otu_labels.slice(0,10),
+                        "type": "pie" }];
+
+        // clear prev plot
+        Plotly.purge("pie");
+        Plotly.plot("pie",data1)
+
+        // make Bubble chart
+
+        // set up the trace
+        var data2 = [{
+            "x": xdata.otu_ids,
+            "y": xdata.sample_values,
+            "text": xdata.otu_labels,
+            "mode": "markers",
+            "marker": {
+                "size": xdata.sample_values,
+                "color": xdata.otu_ids,
+                "colorscale": "Earth"
+            }
+        }];
+
+        // clear prev plot
+        Plotly.purge("bubble");
+        // plot
+        Plotly.plot("bubble",data2);
+        
+    });
+
 }
 
 function init() {
